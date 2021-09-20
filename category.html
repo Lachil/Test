@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Category </title>
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/liquor-tree"></script>
+    <script src="category.js"></script>
+    <link rel="stylesheet" href="category.css">
+  </head>
+  <body>
+    <div id="app">
+      <div class="examples">
+        <div class="example">
+          <div class="example-tree">
+            <tree :data="data" :options="opts" :filter="filter" ref="tree" @node:checked="">
+              <div slot-scope="{ node }" class="node-container">
+                <div class="node-text"><a href="https://vuejs.org/v2/guide/index.html" >{{ node.text }}</a></div>
+                <div class="node-controls">
+                  <button @click.stop="editNode(node)">Edit</button>
+                  <button @click.stop="removeNode(node)">löschen</button>
+                  <button @click.stop="addChildNode(node)">einfügen</button>
+                  
+                </div>
+              </div>
+            </tree>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      new Vue({
+        el: '#app',
+        data: () => ({
+          data: getData(),
+          filter: null,
+          opts: {
+          	minFetchDelay: 1000,
+            fetchData: (node) => {
+            	return Promise.resolve(data[node.id - 1])
+            },
+           
+          }
+        }),
+
+        filters: {
+          time(time) {
+            return +time
+          }
+        },
+        
+        mounted() {
+        	this.$refs.tree.$on('node:editing:start', (node) => {
+          	console.log('Start editing: ' + node.text)
+          })
+          
+        	this.$refs.tree.$on('node:editing:stop', (node, isTextChanged) => {
+          	console.log('Stop editing: ' + node.text + ', ' + isTextChanged)
+          })
+        },
+        
+        methods: {
+          editNode(node, e) {
+            node.startEditing()
+          },
+
+          removeNode(node) {
+           
+              node.remove()
+            
+          },
+
+          addChildNode(node) {
+            if (node.enabled()) {
+            	node.append('neue Kategorie')
+            }
+          },
+
+          initEventViewer(event) {
+            const events = this.events
+						debugger;
+            return function (node, newNode) {
+              let nodeText = '-'
+              let targetNode = newNode && newNode.text ? newNode : node
+
+              if (targetNode && targetNode.text) {
+                nodeText = targetNode.text
+              }
+
+              events.push(
+                Object.assign(
+                  {},
+                  event,
+                  { time: new Date, nodeText, id: key++ }
+                )
+              )
+
+              console.log(event, arguments)
+            }
+          }
+        }
+      })
+
+      function getData() {
+        return new Promise(resolve => {
+          setTimeout(_ => {
+            resolve([
+              {
+                "text": "1. Category ",
+                "isBatch": true,
+                "id": 1
+              },
+              {
+                "text": "2. Category",
+                "isBatch": true,
+                "id": 2
+              },
+  
+              
+            ])
+          })
+        })
+      }
+    </script>
+
+  </body>
+</html>
